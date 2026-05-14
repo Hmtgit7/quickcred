@@ -1,0 +1,17 @@
+{
+  "name": "quickcred",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter client build && pnpm --filter server build",
+    "start": "pnpm --filter server start:prod",
+    "dev": "concurrently \"pnpm --filter client dev\" \"pnpm --filter server start:dev\"",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.0.1",
+    "@commitlint/config-conventional": "^21.0.1",
+    "concurrently": "^9.2.1",
+    "husky": "^8.0.0",
+    "lint-staged": "^17.0.4"
+  }
+}
