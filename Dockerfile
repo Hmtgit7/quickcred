@@ -19,6 +19,5 @@ COPY --from=build /app/client/.next ./client/.next
 COPY --from=build /app/client/public ./client/public
 COPY --from=build /app/node_modules ./node_modules
 COPY server/package.json ./server/package.json
-WORKDIR /app/server
 EXPOSE 3000
-CMD ["node","dist/main.js"]
+CMD ["node","server/dist/main.js"]
