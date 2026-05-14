@@ -32,7 +32,7 @@ async function bootstrap() {
   await app.init();
 
   // Fallback: let Next handle all non-/api routes and static assets
-  server.all('*', (req, res, next) => {
+  server.use((req, res, next) => {
     void handle(req, res, next);
   });
 
