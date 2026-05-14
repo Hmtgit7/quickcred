@@ -1,14 +1,12 @@
 # multi-stage build for monorepo (client: Next.js, server: Nest)
-FROM node:20-alpine AS deps
+FROM node:20-alpine AS build
 WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY client/package.json ./client/
 COPY server/package.json ./server/
-RUN corepack enable && corepack prepare pnpm@latest --activate && pnpm install --frozen-lockfile
-
-FROM node:20-alpine AS build
-WORKDIR /app
 COPY . .
+RUN pnpm install --frozen-lockfile
 RUN pnpm --filter client build
 RUN pnpm --filter server build
 
@@ -19,7 +17,7 @@ ENV NEXT_DIR=/app/client
 COPY --from=build /app/server/dist ./server/dist
 COPY --from=build /app/client/.next ./client/.next
 COPY --from=build /app/client/public ./client/public
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=build /app/node_modules ./node_modules
 COPY server/package.json ./server/package.json
 WORKDIR /app/server
 EXPOSE 3000
