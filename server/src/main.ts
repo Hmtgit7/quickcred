@@ -33,7 +33,13 @@ async function bootstrap() {
 
   // Fallback: let Next handle all non-/api routes and static assets
   server.use((req, res, next) => {
-    void handle(req, res, next);
+    // Let Nest handle API routes
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+
+    // Forward other requests to Next.js
+    return handle(req, res, next);
   });
 
   const port = process.env.PORT ?? 3000;
