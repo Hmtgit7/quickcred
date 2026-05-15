@@ -1,12 +1,18 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Public } from './common/decorators/public.decorator';
 
+@ApiTags('health')
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @Public()
+  @Get('health')
+  @ApiOperation({ summary: 'Health check endpoint' })
+  health(): { status: string; timestamp: string; service: string } {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      service: 'quickcred-api',
+    };
   }
 }
