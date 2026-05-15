@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: quickcred
-    env: docker
-    plan: starter
-    dockerfilePath: ./Dockerfile
-    healthCheckPath: /api
-    autoDeploy: true
