@@ -16,6 +16,7 @@ import { LoansModule } from './modules/loans/loans.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -26,10 +27,11 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     AuthModule,
     UsersModule,
     BREModule,
+    NotificationsModule,
     LoansModule,
     PaymentsModule,
     DocumentsModule,
-    NotificationsModule,
+    AnalyticsModule,
 
     // Rate limiting — 100 requests per 60s per IP globally
     ThrottlerModule.forRoot([
