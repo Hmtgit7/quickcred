@@ -42,7 +42,7 @@ export function proxy(request: NextRequest) {
   }
 
   const { isAuthenticated, role } = getAuthFromRequest(request);
-  const isPublicRoute = PUBLIC_ROUTES.includes(pathname) || pathname === "/";
+  const isPublicRoute = PUBLIC_ROUTES.includes(pathname as (typeof PUBLIC_ROUTES)[number]) || pathname === "/";
 
   // Unauthenticated user trying to access protected route
   if (!isAuthenticated && !isPublicRoute) {
