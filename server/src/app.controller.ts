@@ -5,9 +5,9 @@ import { Public } from './common/decorators/public.decorator';
 @ApiTags('health')
 @Controller()
 export class AppController {
-  @Public()
-  @Get('health')
   @ApiOperation({ summary: 'Health check endpoint' })
+  @Get('health')
+  @Public()
   health(): { status: string; timestamp: string; service: string } {
     return {
       status: 'ok',
