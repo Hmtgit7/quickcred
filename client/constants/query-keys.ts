@@ -1,3 +1,5 @@
+import type { LoanStatus } from "@/types/enums";
+
 export const QUERY_KEYS = {
   AUTH: {
     ME: ["auth", "me"] as const,
@@ -8,7 +10,8 @@ export const QUERY_KEYS = {
     DETAIL: (id: string) => ["users", id] as const,
   },
   LOANS: {
-    ALL: (page?: number, limit?: number) => ["loans", "all", page, limit] as const,
+    ALL: (page?: number, limit?: number, status?: LoanStatus) =>
+      ["loans", "all", page, limit, status] as const,
     MY: (page?: number, limit?: number) => ["loans", "my", page, limit] as const,
     BY_STATUS: (status: string, page?: number) => ["loans", "status", status, page] as const,
     DETAIL: (id: string) => ["loans", id] as const,
