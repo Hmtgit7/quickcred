@@ -20,6 +20,7 @@ import { PaginatedResponse } from '../../common/interfaces/paginated-response.in
 import { LOAN } from '../../common/constants';
 import { Loan, LoanDocument } from './schemas/loan.schema';
 import { AuditLog, AuditLogDocument } from './schemas/audit-log.schema';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class LoansService {
@@ -28,7 +29,8 @@ export class LoansService {
   constructor(
     @InjectModel(Loan.name) private loanModel: Model<LoanDocument>,
     @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLogDocument>,
-    @InjectModel(User.name) private userModel: Model<UserDocument>
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private readonly notificationsService: NotificationsService
   ) {}
 
   // ── Apply for a loan ────────────────────────────────────────────────────
@@ -68,6 +70,8 @@ export class LoansService {
       actorId: new Types.ObjectId(currentUser.sub),
       actorRole: currentUser.role,
     });
+
+    await this.notificationsService.notifyLoanApplied(currentUser.sub, loan._id);
 
     this.logger.log(`Loan ${loan._id.toString()} applied by borrower ${currentUser.sub}`);
     return loan;
@@ -185,6 +189,16 @@ export class LoansService {
       reason: dto.rejectionReason,
     });
 
+    if (dto.action === SanctionAction.Approve) {
+      await this.notificationsService.notifyLoanSanctioned(loan.borrowerId.toString(), loanId);
+    } else {
+      await this.notificationsService.notifyLoanRejected(
+        loan.borrowerId.toString(),
+        loanId,
+        dto.rejectionReason ?? 'Rejected by sanction team'
+      );
+    }
+
     this.logger.log(`Loan ${loanId.toString()} ${newStatus} by ${currentUser.email}`);
     return updated;
   }
@@ -226,6 +240,12 @@ export class LoansService {
       actorRole: currentUser.role,
       metadata: { disbursalUtrNumber: dto.disbursalUtrNumber },
     });
+
+    await this.notificationsService.notifyLoanDisbursed(
+      loan.borrowerId.toString(),
+      loanId,
+      loan.principalAmount
+    );
 
     this.logger.log(`Loan ${loanId.toString()} disbursed by ${currentUser.email}`);
     return updated;

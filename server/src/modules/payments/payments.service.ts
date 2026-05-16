@@ -14,6 +14,7 @@ import { JwtPayload } from '../../common/interfaces/jwt-payload.interface';
 import { LoansService } from '../loans/loans.service';
 import { Payment, PaymentDocument } from './schemas/payment.schema';
 import { Loan, LoanDocument } from '../loans/schemas/loan.schema';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class PaymentsService {
@@ -22,7 +23,8 @@ export class PaymentsService {
   constructor(
     @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
     @InjectModel(Loan.name) private loanModel: Model<LoanDocument>,
-    private readonly loansService: LoansService
+    private readonly loansService: LoansService,
+    private readonly notificationsService: NotificationsService
   ) {}
 
   // ── Record a payment ────────────────────────────────────────────────────
@@ -91,6 +93,14 @@ export class PaymentsService {
       await this.loansService.autoClose(loanObjectId, currentUser.sub);
       this.logger.log(`Loan ${dto.loanId} auto-closed — full repayment received`);
     }
+
+    const newOutstanding = autoClosedLoan ? 0 : summary.outstanding - dto.amount;
+    await this.notificationsService.notifyPaymentRecorded(
+      loan.borrowerId.toString(),
+      loanObjectId,
+      dto.amount,
+      newOutstanding
+    );
 
     return { payment, autoClosedLoan };
   }
