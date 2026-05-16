@@ -211,3 +211,35 @@
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .ios-text-fix {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .break-anywhere {
+    overflow-wrap: anywhere;
+  }
+}

@@ -15,10 +15,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Write lightweight cookies for middleware to read
       document.cookie = `quickcred-auth-token=${accessToken}; path=/; SameSite=Lax`;
       document.cookie = `quickcred-auth-role=${user.role}; path=/; SameSite=Lax`;
+      document.cookie = `access_token=${accessToken}; path=/; SameSite=Lax`;
     } else {
       // Clear cookies on logout
       document.cookie = "quickcred-auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       document.cookie = "quickcred-auth-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      document.cookie = "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     }
   }, [accessToken, user, isAuthenticated]);
 

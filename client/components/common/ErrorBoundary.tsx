@@ -1,12 +1,12 @@
 "use client";
 
-import { Component, type ReactNode, type ErrorInfo } from "react";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
+import { Component, type ErrorInfo, type ReactNode } from "react";
+import { GlobalErrorFallback } from "./GlobalErrorFallback";
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  onError?: (error: Error, info: ErrorInfo) => void;
 }
 
 interface State {
@@ -25,32 +25,18 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error("[ErrorBoundary]", error, info.componentStack);
+    console.error("[ErrorBoundary]", error, info);
+    this.props.onError?.(error, info);
   }
 
-  handleReset = () => {
-    this.setState({ hasError: false, error: null });
-  };
+  reset = () => this.setState({ hasError: false, error: null });
 
   render() {
     if (this.state.hasError) {
-      if (this.props.fallback) return this.props.fallback;
-
       return (
-        <div className="flex flex-col items-center justify-center py-16 px-8 text-center">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-            <AlertTriangle className="h-6 w-6 text-destructive" />
-          </div>
-          <h3 className="text-base font-semibold text-foreground mb-1">
-            Something went wrong
-          </h3>
-          <p className="text-sm text-muted-foreground max-w-[30ch] mb-6">
-            {this.state.error?.message ?? "An unexpected error occurred."}
-          </p>
-          <Button variant="outline" size="sm" onClick={this.handleReset}>
-            Try again
-          </Button>
-        </div>
+        this.props.fallback ?? (
+          <GlobalErrorFallback error={this.state.error} onReset={this.reset} />
+        )
       );
     }
 

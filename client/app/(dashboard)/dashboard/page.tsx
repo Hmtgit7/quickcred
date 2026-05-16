@@ -8,7 +8,8 @@ import { Role } from "@/types/enums";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/common/PageHeader";
 import { BorrowerDashboard } from "./_components/BorrowerDashboard";
-import { Skeleton, SkeletonCard } from "@/components/common/Skeleton";
+import { AnalyticsContent } from "../analytics/_components/AnalyticsContent";
+import { AnalyticsSkeleton } from "../analytics/_components/AnalyticsSkeleton";
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
@@ -16,7 +17,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    // Executives get redirected to their module — only borrowers & admins land here
+    // Executives get redirected to their module; only borrowers and admins land here.
     if (user.role !== Role.Borrower && user.role !== Role.Admin) {
       router.replace(ROLE_ROUTES[user.role] ?? ROUTES.DASHBOARD);
     }
@@ -24,11 +25,12 @@ export default function DashboardPage() {
 
   if (!user) {
     return (
-      <PageContainer>
-        <Skeleton className="h-6 w-48 mb-6" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
+      <PageContainer size="wide">
+        <div className="mb-6 space-y-2">
+          <div className="skeleton-shimmer h-10 w-80 max-w-full rounded-md" />
+          <div className="skeleton-shimmer h-4 w-96 max-w-full rounded-md" />
         </div>
+        <AnalyticsSkeleton />
       </PageContainer>
     );
   }
@@ -41,16 +43,13 @@ export default function DashboardPage() {
     );
   }
 
-  // Admin sees analytics — redirect handled above for others
   return (
-    <PageContainer>
+    <PageContainer size="wide">
       <PageHeader
         title={`Welcome, ${user.fullName ?? user.email}`}
         subtitle="Here's what's happening across QuickCred today."
       />
-      <p className="text-sm text-muted-foreground">
-        Loading your dashboard…
-      </p>
+      <AnalyticsContent />
     </PageContainer>
   );
 }

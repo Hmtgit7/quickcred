@@ -21,7 +21,7 @@ export function Topbar() {
       <div className="flex items-center gap-1">
         <NotificationBell />
 
-        <div className="hidden lg:block">
+        <div>
           <ThemeToggle />
         </div>
 

@@ -4,7 +4,6 @@ import { useUiStore } from "@/store/uiStore";
 import { usePermission } from "@/hooks/usePermission";
 import { SidebarNavItem } from "./SidebarNavItem";
 import { SidebarUserFooter } from "./SidebarUserFooter";
-import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -88,9 +87,6 @@ export function MobileNav() {
           </ScrollArea>
 
           <div className="px-2 pb-4 border-t border-sidebar-border pt-2 space-y-1">
-            <div className="px-1">
-              <ThemeToggle className="w-full justify-start gap-3 text-sidebar-foreground/70" />
-            </div>
             <SidebarUserFooter />
           </div>
         </SheetContent>

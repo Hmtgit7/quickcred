@@ -2,74 +2,98 @@ import { NextRequest, NextResponse } from "next/server";
 import { PUBLIC_ROUTES, ROLE_ROUTES, ROUTES } from "@/constants/routes";
 import { Role } from "@/types/enums";
 
-/** Role → protected route prefix (routes that only that role can access) */
-const ROLE_PROTECTED_PREFIXES: Partial<Record<Role, string>> = {
-  [Role.Sales]: "/sales",
-  [Role.Sanction]: "/sanction",
-  [Role.Disbursement]: "/disbursement",
-  [Role.Collection]: "/collection",
-  [Role.Admin]: "/analytics",
-};
+interface TokenPayload {
+  role?: Role;
+  exp?: number;
+}
+
+const ROLE_PROTECTED_PREFIXES: { path: string; roles: Role[] }[] = [
+  { path: ROUTES.ANALYTICS, roles: [Role.Admin] },
+  { path: ROUTES.SALES, roles: [Role.Sales, Role.Admin] },
+  { path: ROUTES.SANCTION, roles: [Role.Sanction, Role.Admin] },
+  { path: ROUTES.DISBURSEMENT, roles: [Role.Disbursement, Role.Admin] },
+  { path: ROUTES.COLLECTION, roles: [Role.Collection, Role.Admin] },
+  { path: ROUTES.LOANS.APPLY, roles: [Role.Borrower] },
+];
+
+function decodeToken(token: string): TokenPayload | null {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = globalThis.atob(normalized);
+    return JSON.parse(decoded) as TokenPayload;
+  } catch {
+    return null;
+  }
+}
+
+function getTokenFromRequest(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) return authHeader.slice(7);
+
+  return (
+    request.cookies.get("quickcred-auth-token")?.value ??
+    request.cookies.get("access_token")?.value ??
+    null
+  );
+}
 
 function getAuthFromRequest(request: NextRequest): {
   isAuthenticated: boolean;
   role: Role | null;
 } {
-  // Read persisted Zustand auth store from cookie (set by the app via document.cookie)
-  const authCookie = request.cookies.get("quickcred-auth-role")?.value;
-  const tokenCookie = request.cookies.get("quickcred-auth-token")?.value;
+  const token = getTokenFromRequest(request);
+  if (!token) return { isAuthenticated: false, role: null };
 
-  if (!tokenCookie || !authCookie) {
-    return { isAuthenticated: false, role: null };
-  }
+  const payload = decodeToken(token);
+  const roleCookie = request.cookies.get("quickcred-auth-role")?.value as
+    | Role
+    | undefined;
+  const role = payload?.role ?? roleCookie ?? null;
+  const isExpired = payload?.exp ? Date.now() / 1000 > payload.exp - 10 : false;
 
-  return {
-    isAuthenticated: true,
-    role: authCookie as Role,
-  };
+  if (isExpired) return { isAuthenticated: false, role: null };
+
+  return { isAuthenticated: true, role };
 }
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip Next.js internals and static files
   if (
     pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
     pathname.startsWith("/favicon") ||
     pathname.includes(".")
   ) {
     return NextResponse.next();
   }
 
+  const isPublicRoute =
+    PUBLIC_ROUTES.includes(pathname as (typeof PUBLIC_ROUTES)[number]) ||
+    pathname === "/";
   const { isAuthenticated, role } = getAuthFromRequest(request);
-  const isPublicRoute = PUBLIC_ROUTES.includes(pathname as (typeof PUBLIC_ROUTES)[number]) || pathname === "/";
 
-  // Unauthenticated user trying to access protected route
   if (!isAuthenticated && !isPublicRoute) {
     const loginUrl = new URL(ROUTES.LOGIN, request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Authenticated user trying to access auth pages → redirect to their dashboard
   if (isAuthenticated && (pathname === ROUTES.LOGIN || pathname === ROUTES.REGISTER)) {
     const redirect = role ? (ROLE_ROUTES[role] ?? ROUTES.DASHBOARD) : ROUTES.DASHBOARD;
     return NextResponse.redirect(new URL(redirect, request.url));
   }
 
-  // Role-based route protection for authenticated users
   if (isAuthenticated && role) {
-    for (const [allowedRole, prefix] of Object.entries(ROLE_PROTECTED_PREFIXES)) {
-      if (pathname.startsWith(prefix)) {
-        // Admin can access everything
-        if (role === Role.Admin) break;
-        // Exact role match required
-        if (role !== allowedRole) {
-          const fallback = ROLE_ROUTES[role] ?? ROUTES.DASHBOARD;
-          return NextResponse.redirect(new URL(fallback, request.url));
-        }
-        break;
-      }
+    const restriction = ROLE_PROTECTED_PREFIXES.find(({ path }) =>
+      pathname.startsWith(path)
+    );
+
+    if (restriction && !restriction.roles.includes(role)) {
+      const fallback = ROLE_ROUTES[role] ?? ROUTES.DASHBOARD;
+      return NextResponse.redirect(new URL(fallback, request.url));
     }
   }
 
