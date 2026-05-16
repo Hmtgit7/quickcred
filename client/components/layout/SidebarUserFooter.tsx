@@ -1,6 +1,8 @@
 "use client";
 
-import { LogOut, User, ChevronUp } from "lucide-react";
+import Link from "next/link";
+import { ChevronUp, User } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,13 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useAuthStore } from "@/modules/auth/store/authStore";
-import { useLogout } from "@/modules/auth/hooks/useLogout";
 import { ROUTES } from "@/constants/routes";
-import { getInitials } from "@/lib/utils";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { getInitials, cn } from "@/lib/utils";
+import { useAuthStore } from "@/modules/auth/store/authStore";
 
 interface SidebarUserFooterProps {
   collapsed?: boolean;
@@ -23,7 +21,6 @@ interface SidebarUserFooterProps {
 
 export function SidebarUserFooter({ collapsed = false }: SidebarUserFooterProps) {
   const user = useAuthStore((s) => s.user);
-  const { mutate: logout, isPending } = useLogout();
 
   if (!user) return null;
 
@@ -36,25 +33,26 @@ export function SidebarUserFooter({ collapsed = false }: SidebarUserFooterProps)
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
-            "hover:bg-sidebar-accent text-sidebar-foreground",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            "flex w-full items-center rounded-lg transition-colors",
+            "text-sidebar-foreground hover:bg-sidebar-accent",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+            collapsed ? "h-9 justify-center px-0" : "gap-3 px-3 py-2.5"
           )}
           aria-label="User menu"
         >
           <Avatar className="h-7 w-7 shrink-0">
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+            <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">
               {initials}
             </AvatarFallback>
           </Avatar>
 
           {!collapsed && (
             <>
-              <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-medium truncate">{displayName}</p>
-                <p className="text-xs text-muted-foreground truncate">{roleLabel}</p>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="truncate text-sm font-medium">{displayName}</p>
+                <p className="truncate text-xs text-muted-foreground">{roleLabel}</p>
               </div>
-              <ChevronUp className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <ChevronUp className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             </>
           )}
         </button>
@@ -68,23 +66,11 @@ export function SidebarUserFooter({ collapsed = false }: SidebarUserFooterProps)
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-
         <DropdownMenuItem asChild>
           <Link href={ROUTES.PROFILE} className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             My Profile
           </Link>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem
-          onClick={() => logout()}
-          disabled={isPending}
-          className="text-destructive focus:text-destructive cursor-pointer"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          {isPending ? "Signing out…" : "Sign out"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

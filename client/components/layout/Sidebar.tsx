@@ -3,6 +3,7 @@
 import { useUiStore } from "@/store/uiStore";
 import { usePermission } from "@/hooks/usePermission";
 import { SidebarNavItem } from "./SidebarNavItem";
+import { SidebarLogoutButton } from "./SidebarLogoutButton";
 import { SidebarUserFooter } from "./SidebarUserFooter";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -128,6 +129,7 @@ export function Sidebar() {
       <div className="shrink-0 px-2 pb-3 space-y-1">
         <Separator className="mb-2 bg-sidebar-border" />
         <SidebarUserFooter collapsed={!sidebarOpen} />
+        <SidebarLogoutButton collapsed={!sidebarOpen} />
       </div>
     </aside>
   );

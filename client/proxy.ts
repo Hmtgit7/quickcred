@@ -8,6 +8,7 @@ interface TokenPayload {
 }
 
 const ROLE_PROTECTED_PREFIXES: { path: string; roles: Role[] }[] = [
+  { path: ROUTES.DASHBOARD, roles: [Role.Borrower, Role.Admin] },
   { path: ROUTES.ANALYTICS, roles: [Role.Admin] },
   { path: ROUTES.SALES, roles: [Role.Sales, Role.Admin] },
   { path: ROUTES.SANCTION, roles: [Role.Sanction, Role.Admin] },

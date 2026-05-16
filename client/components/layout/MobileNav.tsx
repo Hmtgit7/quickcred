@@ -3,9 +3,16 @@
 import { useUiStore } from "@/store/uiStore";
 import { usePermission } from "@/hooks/usePermission";
 import { SidebarNavItem } from "./SidebarNavItem";
+import { SidebarLogoutButton } from "./SidebarLogoutButton";
 import { SidebarUserFooter } from "./SidebarUserFooter";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Menu } from "lucide-react";
 import { NAV_ITEMS } from "./navConfig";
@@ -67,6 +74,9 @@ export function MobileNav() {
                 <span className="font-semibold text-sm text-sidebar-foreground">{APP_NAME}</span>
               </Link>
             </SheetTitle>
+            <SheetDescription className="sr-only">
+              Main navigation links and account actions.
+            </SheetDescription>
           </SheetHeader>
 
           <ScrollArea className="flex-1 px-2 py-3 h-[calc(100dvh-7rem)]">
@@ -88,6 +98,7 @@ export function MobileNav() {
 
           <div className="px-2 pb-4 border-t border-sidebar-border pt-2 space-y-1">
             <SidebarUserFooter />
+            <SidebarLogoutButton />
           </div>
         </SheetContent>
       </Sheet>

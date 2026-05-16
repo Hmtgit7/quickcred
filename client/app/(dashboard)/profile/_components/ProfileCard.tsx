@@ -34,8 +34,9 @@ import {
     updateProfileSchema,
     type UpdateProfileFormData,
 } from "@/modules/users/types/user.schemas";
-import { EmploymentMode } from "@/types/enums";
+import { EmploymentMode, Role } from "@/types/enums";
 import { formatCurrency } from "@/lib/utils";
+import { StaffProfileCard } from "./StaffProfileCard";
 
 const EMPLOYMENT_OPTIONS = [
     { value: EmploymentMode.Salaried, label: "Salaried" },
@@ -82,6 +83,10 @@ export function ProfileCard() {
                 </CardContent>
             </Card>
         );
+    }
+
+    if (user && user.role !== Role.Borrower) {
+        return <StaffProfileCard user={user} />;
     }
 
     return (

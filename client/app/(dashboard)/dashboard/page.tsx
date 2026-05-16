@@ -43,6 +43,10 @@ export default function DashboardPage() {
     );
   }
 
+  if (user.role !== Role.Admin) {
+    return null;
+  }
+
   return (
     <PageContainer size="wide">
       <PageHeader

@@ -24,6 +24,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: ROUTES.DASHBOARD,
     label: "Dashboard",
     icon: LayoutDashboard,
+    roles: [Role.Borrower, Role.Admin],
   },
   {
     href: ROUTES.LOANS.ROOT,

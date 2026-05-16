@@ -39,8 +39,9 @@ export function SidebarNavItem({
       href={href}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+        "flex items-center rounded-lg text-sm font-medium transition-all duration-150",
         "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+        collapsed ? "mx-auto h-9 w-9 justify-center p-0" : "w-full gap-3 px-3 py-2.5",
         isActive
           ? "bg-sidebar-accent text-sidebar-primary font-semibold"
           : "text-sidebar-foreground/70"
