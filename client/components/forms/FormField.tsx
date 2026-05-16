@@ -7,7 +7,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { type Control, type FieldValues, type Path } from "react-hook-form";
+import {
+  type Control,
+  type ControllerRenderProps,
+  type FieldValues,
+  type Path,
+} from "react-hook-form";
 import { type ReactNode } from "react";
 
 interface FormFieldProps<T extends FieldValues> {
@@ -19,7 +24,7 @@ interface FormFieldProps<T extends FieldValues> {
   description?: string;
   disabled?: boolean;
   className?: string;
-  children?: (field: Parameters<Parameters<typeof ShadFormField>[0]["render"]>[0]["field"]) => ReactNode;
+  children?: (field: ControllerRenderProps<T, Path<T>>) => ReactNode;
 }
 
 export function FormField<T extends FieldValues>({

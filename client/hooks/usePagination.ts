@@ -18,8 +18,8 @@ export function usePagination(
   initialPage = PAGINATION_DEFAULTS.PAGE,
   initialLimit = PAGINATION_DEFAULTS.LIMIT
 ): PaginationState & PaginationActions & { totalPages: number; setTotalPages: (n: number) => void } {
-  const [page, setPageState] = useState(initialPage);
-  const [limit, setLimitState] = useState(initialLimit);
+  const [page, setPageState] = useState<number>(initialPage);
+  const [limit, setLimitState] = useState<number>(initialLimit);
   const [totalPages, setTotalPages] = useState(1);
 
   const setPage = useCallback((p: number) => setPageState(p), []);

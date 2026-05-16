@@ -1,14 +1,17 @@
 import { cn } from "@/lib/utils";
+import type { CSSProperties } from "react";
 
 interface SkeletonProps {
   className?: string;
+  style?: CSSProperties;
 }
 
 /** Base shimmer skeleton block */
-export function Skeleton({ className }: SkeletonProps) {
+export function Skeleton({ className, style }: SkeletonProps) {
   return (
     <div
       className={cn("skeleton-shimmer rounded-md", className)}
+      style={style}
       aria-hidden="true"
     />
   );
