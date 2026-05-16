@@ -1,1 +1,274 @@
-# 💻 Quickcred Development Guide\n\n## Getting Started\n\n### Prerequisites\n- Node.js 20+ ([Download](https://nodejs.org))\n- pnpm 10+ (`npm install -g pnpm`)\n- Git\n- VS Code (recommended)\n\n### Initial Setup\n\n```bash\n# Clone repository\ngit clone https://github.com/Hmtgit7/quickcred.git\ncd quickcred\n\n# Install all dependencies\npnpm install\n\n# Install Git hooks (pre-commit, commit-msg)\npnpm prepare\n```\n\n---\n\n## 🏃 Running the Project\n\n### Development Mode (Both Frontend + Backend)\n\n```bash\n# Start both simultaneously\npnpm dev\n\n# Frontend: http://localhost:3001 (or next available)\n# Backend: http://localhost:3000\n```\n\n### Frontend Only\n\n```bash\npnpm --filter client dev\n\n# Open http://localhost:3000\n```\n\n### Backend Only\n\n```bash\npnpm --filter server start:dev\n\n# API at http://localhost:3000/api\n```\n\n---\n\n## 🏗️ Project Structure\n\n### Frontend (Next.js)\n\n```\nclient/\n├── app/\n│   ├── layout.tsx          # Root layout\n│   ├── page.tsx            # Home page (/)\n│   └── globals.css         # Global styles\n├── public/                 # Static assets\n├── next.config.ts          # Next.js config\n├── tsconfig.json           # TypeScript config\n└── package.json\n```\n\n### Backend (NestJS)\n\n```\nserver/\n├── src/\n│   ├── main.ts             # Entry point\n│   ├── app.module.ts       # Root module\n│   ├── app.controller.ts   # API routes\n│   ├── app.service.ts      # Business logic\n│   └── app.controller.spec.ts\n├── test/\n│   └── app.e2e-spec.ts     # E2E tests\n├── dist/                   # Compiled output (generated)\n├── tsconfig.json           # TypeScript config\n├── nest-cli.json           # NestJS CLI config\n└── package.json\n```\n\n---\n\n## 📝 Editing Code\n\n### Adding a Frontend Page\n\n```bash\n# Create new route in client/app/\n# client/app/dashboard/page.tsx\n\nexport default function Dashboard() {\n  return <h1>Dashboard</h1>\n}\n\n# Auto-routed to /dashboard\n```\n\n### Adding a Backend Endpoint\n\n```bash\n# Edit server/src/app.controller.ts\n\nimport { Controller, Get } from '@nestjs/common';\n\n@Controller('api')\nexport class AppController {\n  @Get('hello')\n  getHello(): string {\n    return 'Hello from /api/hello';\n  }\n}\n\n# Test: curl http://localhost:3000/api/hello\n```\n\n### Adding a Dependency\n\n```bash\n# Add to client\npnpm --filter client add axios\n\n# Add to server\npnpm --filter server add class-validator class-transformer\n\n# Add dev dependency to root\npnpm add -D -w eslint-plugin-custom\n```\n\n---\n\n## 🧪 Testing\n\n### Backend Unit Tests\n\n```bash\n# Run tests\npnpm --filter server test\n\n# Watch mode\npnpm --filter server test:watch\n\n# Coverage\npnpm --filter server test:cov\n```\n\n### Backend E2E Tests\n\n```bash\n# Run E2E tests\npnpm --filter server test:e2e\n```\n\n### Linting\n\n```bash\n# Lint all\npnpm --filter client lint\npnpm --filter server lint\n\n# Lint with auto-fix\npnpm --filter client lint -- --fix\npnpm --filter server lint -- --fix\n```\n\n---\n\n## 🔧 Building for Production\n\n### Build Both\n\n```bash\npnpm build\n\n# Outputs:\n# client/.next/        (Next.js build)\n# server/dist/         (NestJS compiled)\n```\n\n### Build Individually\n\n```bash\n# Frontend only\npnpm --filter client build\n\n# Backend only\npnpm --filter server build\n```\n\n### Test Production Build Locally\n\n```bash\n# Start compiled backend\npnpm --filter server start:prod\n\n# In another terminal: start frontend\npnpm --filter client start\n```\n\n---\n\n## 🐳 Docker\n\n### Build Docker Image\n\n```bash\ndocker build -t quickcred:latest .\n```\n\n### Run Container\n\n```bash\n# With default settings\ndocker run -p 3000:3000 quickcred:latest\n\n# With custom CORS origin\ndocker run -p 3000:3000 -e CORS_ORIGIN=\"*\" quickcred:latest\n\n# With custom port\ndocker run -p 8080:3000 -e PORT=3000 quickcred:latest\n```\n\n### Docker Compose\n\n```bash\n# If docker-compose.yml exists\ndocker-compose up\ndocker-compose down\n```\n\n---\n\n## 🔐 Git Workflow\n\n### Pre-Commit Hooks\n\nThis project uses Husky for automated checks:\n\n```bash\n# Hooks automatically run on git commit:\n# 1. ESLint + Prettier (auto-fix)\n# 2. Conventional Commits validation\n# 3. Test checks (optional)\n```\n\n### Commit Message Format\n\n```bash\ngit commit -m \"feat: add new feature\"\ngit commit -m \"fix: resolve bug\"\ngit commit -m \"refactor: restructure code\"\ngit commit -m \"docs: update documentation\"\n```\n\nConventional Commits:\n- `feat:` New feature\n- `fix:` Bug fix\n- `refactor:` Code restructuring\n- `docs:` Documentation\n- `style:` Formatting/styling\n- `test:` Test changes\n- `chore:` Maintenance\n\n### Skip Hooks (if needed)\n\n```bash\n# Bypass pre-commit hooks\ngit commit --no-verify -m \"...\"\n```\n\n---\n\n## 📦 Dependency Management\n\n### Adding Packages\n\n```bash\n# Add to specific workspace\npnpm --filter client add package-name\npnpm --filter server add package-name\n\n# Add to all workspaces\npnpm add -w package-name\n\n# Add dev dependency to all\npnpm add -D -w package-name\n\n# Install specific version\npnpm --filter server add axios@1.5.0\n```\n\n### Removing Packages\n\n```bash\npnpm --filter server remove axios\npnpm remove -w jest\n```\n\n### Checking Outdated Packages\n\n```bash\n# Check for updates\npnpm outdated\n\n# Update all packages\npnpm update -r\n\n# Interactive update\npnpm update -r --interactive\n```\n\n---\n\n## 🐛 Debugging\n\n### Backend Debugging\n\n```bash\n# Debug mode with breakpoints\npnpm --filter server start:debug\n\n# Attach debugger to port 9229\n# VS Code: Launch → Node: Attach\n```\n\n### Frontend Debugging\n\n1. Open http://localhost:3001 (or specified port)\n2. Press `F12` to open DevTools\n3. Sources tab for code debugging\n4. Console tab for logging\n\n### Enable Debug Logs\n\n```bash\n# Backend\nDEBUG=* pnpm --filter server start:dev\n\n# Frontend\nDEBUG=next:* pnpm --filter client dev\n```\n\n---\n\n## 🔄 Updating Dependencies\n\n### Automatic (Dependabot)\n\nDependabot automatically:\n1. Checks for updates weekly\n2. Creates pull requests with updates\n3. Runs tests automatically\n4. Merges if tests pass\n\n### Manual Update\n\n```bash\n# Check for updates\npnpm outdated\n\n# Update all\npnpm update -r\n\n# Update specific\npnpm --filter server update react\n```\n\n---\n\n## 🚀 Deploying Changes\n\n1. Create feature branch\n   ```bash\n   git checkout -b feature/my-feature\n   ```\n\n2. Make changes and commit\n   ```bash\n   git add .\n   git commit -m \"feat: my new feature\"\n   ```\n\n3. Push to GitHub\n   ```bash\n   git push origin feature/my-feature\n   ```\n\n4. Create Pull Request on GitHub\n\n5. Merge to `main` → Auto-deploys!\n   - Backend auto-deploys to Render\n   - Frontend auto-deploys to Vercel\n\n---\n\n## 📚 Tech Stack Details\n\n| Technology | Version | Purpose |\n|-----------|---------|----------|\n| Next.js | 16.2.6 | Frontend framework |\n| React | 19.2.4 | UI library |\n| NestJS | 11.0.1 | Backend framework |\n| Node.js | 20 | Runtime |\n| pnpm | 10.33.0 | Package manager |\n| TypeScript | Latest | Type safety |\n| ESLint | 9 | Linting |\n| Prettier | Latest | Code formatting |\n| Jest | Latest | Testing |\n| Docker | Latest | Containerization |\n\n---\n\n## 🔗 Useful Links\n\n- [Next.js Docs](https://nextjs.org/docs)\n- [NestJS Docs](https://docs.nestjs.com)\n- [pnpm Workspace](https://pnpm.io/workspaces)\n- [TypeScript Handbook](https://www.typescriptlang.org/docs)\n- [ESLint Rules](https://eslint.org/docs/rules)\n\n---\n\n## ❓ FAQ\n\n**Q: How do I add a new page to the frontend?**\nA: Create a new file in `client/app/`. For example, `client/app/about/page.tsx` creates an `/about` route.\n\n**Q: How do I add a new API endpoint?**\nA: Add a method to `server/src/app.controller.ts` with decorators like `@Get()`, `@Post()`, etc.\n\n**Q: How do I debug the backend?**\nA: Run `pnpm --filter server start:debug` and attach VS Code debugger to port 9229.\n\n**Q: How do I run tests?**\nA: Run `pnpm --filter server test` for unit tests or `pnpm --filter server test:e2e` for E2E tests.\n\n**Q: Can I use npm instead of pnpm?**\nA: Not recommended - this workspace is optimized for pnpm. Use `pnpm install` instead of `npm install`.\n\n---\n\n**Last Updated**: May 15, 2026\n
+# QuickCred Development Guide
+
+This guide covers local setup, development workflow, project conventions, and troubleshooting for QuickCred.
+
+## Prerequisites
+
+- Node.js 20+
+- pnpm 10+
+- Git
+- MongoDB Atlas or a local MongoDB instance
+- Cloudinary account for document uploads
+
+## First-Time Setup
+
+```bash
+git clone https://github.com/Hmtgit7/quickcred.git
+cd quickcred
+pnpm install
+```
+
+Create local environment files:
+
+```bash
+cp server/.env.example server/.env
+cp client/.env.example client/.env.local
+```
+
+Recommended local ports:
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8080/api`
+
+Backend environment example:
+
+```env
+PORT=8080
+NODE_ENV=development
+API_PREFIX=api
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=replace-with-a-long-secret
+JWT_EXPIRY=15m
+JWT_REFRESH_SECRET=replace-with-another-long-secret
+JWT_REFRESH_EXPIRY=7d
+CLOUDINARY_CLOUD_NAME=your-cloud
+CLOUDINARY_API_KEY=your-key
+CLOUDINARY_API_SECRET=your-secret
+CORS_ORIGIN=http://localhost:3000
+```
+
+Frontend environment example:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080/api
+NEXT_PUBLIC_APP_NAME=QuickCred
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+Seed local demo accounts:
+
+```bash
+pnpm --filter server seed
+```
+
+## Running Locally
+
+Run both apps:
+
+```bash
+pnpm dev
+```
+
+Run individually:
+
+```bash
+pnpm --filter client dev
+pnpm --filter server start:dev
+```
+
+Swagger is available in development at:
+
+```text
+http://localhost:8080/api/docs
+```
+
+## Workspace Commands
+
+```bash
+# Install dependencies
+pnpm install
+
+# Build frontend and backend
+pnpm build
+
+# Frontend checks
+pnpm --filter client lint
+pnpm --filter client build
+
+# Backend checks
+pnpm --filter server lint
+pnpm --filter server build
+pnpm --filter server test
+pnpm --filter server test:e2e
+
+# Seed data
+pnpm --filter server seed
+```
+
+## Frontend Architecture
+
+The frontend uses Next.js App Router.
+
+Important directories:
+
+```text
+client/app/                 Route groups, pages, layouts, global CSS
+client/components/common/   Shared application components
+client/components/layout/   Sidebar, topbar, mobile navigation, containers
+client/components/ui/       Base UI primitives
+client/modules/auth/        Login, register, auth hooks, auth services
+client/modules/loans/       Loan data hooks and services
+client/modules/payments/    Collection/payment services and hooks
+client/modules/analytics/   Admin analytics hooks and services
+client/store/               Zustand UI state
+client/types/               Shared frontend types and enums
+```
+
+Frontend conventions:
+
+- Use feature modules under `client/modules/*` for domain-specific hooks, services, schemas, and components.
+- Keep route pages thin; put reusable UI inside `_components` or shared component folders.
+- Use TanStack Query for server state and Zustand for local UI state.
+- Use `apiClient` from `client/lib/axios/client.ts` for authenticated API calls.
+- Use existing UI primitives before adding new styling patterns.
+- Keep components focused; split forms, panels, and helpers when they grow large.
+
+## Backend Architecture
+
+The backend uses NestJS with MongoDB/Mongoose.
+
+Important directories:
+
+```text
+server/src/common/          Guards, decorators, interceptors, filters, pipes
+server/src/config/          App, database, JWT, and Cloudinary config
+server/src/database/        MongoDB module and seed script
+server/src/modules/auth/    Signup, login, refresh, logout
+server/src/modules/users/   Profile, leads, admin user listing
+server/src/modules/loans/   Application, sanction, disbursement, audit trail
+server/src/modules/payments/ Payment recording and loan payment summaries
+server/src/modules/documents/ Cloudinary-backed document uploads
+server/src/modules/notifications/ In-app notifications
+server/src/modules/analytics/ Admin analytics and chart data
+```
+
+Backend conventions:
+
+- All routes are JWT-protected by default through global guards.
+- Use `@Public()` only for public endpoints like login, signup, refresh, and health.
+- Use `@Roles(...)` for role-specific access.
+- DTOs are validated globally with Nest validation pipes.
+- Responses are normalized through the global response transform interceptor.
+- Errors are normalized through the global exception filter.
+- Keep business rules inside services, not controllers.
+
+## Roles
+
+| Role | Primary area |
+| --- | --- |
+| `admin` | Analytics and full operational visibility |
+| `sales` | Leads and pre-loan borrower conversion |
+| `sanction` | Applied loan review, approval, rejection |
+| `disbursement` | Sanctioned loan fund release |
+| `collection` | Disbursed loan repayment tracking |
+| `borrower` | Profile, loan application, documents, own loans |
+
+## Loan Lifecycle
+
+```text
+pending -> applied -> sanctioned -> disbursed -> closed
+                   \-> rejected
+```
+
+Typical flow:
+
+1. Borrower completes eligibility profile.
+2. Borrower applies for a loan.
+3. Sanction team approves or rejects.
+4. Disbursement team marks sanctioned loans as disbursed.
+5. Collection team records payments.
+6. Loan closes when outstanding amount reaches zero.
+
+## Data and API Flow
+
+The frontend calls the backend with:
+
+```text
+NEXT_PUBLIC_API_URL=http://localhost:8080/api
+```
+
+`apiClient` automatically:
+
+- Adds bearer token authorization.
+- Sends credentials for refresh-token support.
+- Refreshes expired access tokens.
+- Redirects to login when the session expires.
+
+## Testing Notes
+
+Backend unit tests:
+
+```bash
+pnpm --filter server test
+```
+
+Backend e2e tests:
+
+```bash
+pnpm --filter server test:e2e
+```
+
+Frontend validation:
+
+```bash
+pnpm --filter client lint
+pnpm --filter client build
+```
+
+## Troubleshooting
+
+### Frontend cannot call backend
+
+Check:
+
+- `client/.env.local` has `NEXT_PUBLIC_API_URL=http://localhost:8080/api`.
+- `server/.env` has `CORS_ORIGIN=http://localhost:3000`.
+- Backend is running and health endpoint returns OK.
+
+```bash
+curl http://localhost:8080/api/health
+```
+
+### 401 Unauthorized
+
+Usually caused by an expired or missing token. Sign in again or clear local storage for the app.
+
+### 403 Forbidden
+
+The signed-in role does not have access to that route. Example: `disbursement` cannot access admin analytics endpoints.
+
+### Missing Cloudinary configuration
+
+Document uploads require:
+
+```env
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
+
+### Render cold start
+
+The hosted API may take a short moment to wake up on free infrastructure. Retry once if the first request is slow.
+
+## Git Workflow
+
+Use Conventional Commit style:
+
+```bash
+git commit -m "feat: add borrower loan timeline"
+git commit -m "fix: prevent unauthorized analytics request"
+git commit -m "docs: refresh deployment guide"
+```
+
+Pre-commit hooks are installed through Husky when dependencies are installed.

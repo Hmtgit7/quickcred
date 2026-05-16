@@ -1,266 +1,221 @@
-# 🚀 Quickcred Deployment Guide
+# QuickCred Deployment Guide
 
-## Overview
+QuickCred is deployed as two independent services:
 
-Quickcred is a monorepo with **separate deployments**:
-- **Frontend**: Next.js on Vercel
-- **Backend**: NestJS on Render
+- Frontend: Next.js on Vercel
+- Backend: NestJS API on Render
 
-This separation provides:
-- ✅ Independent scaling
-- ✅ No routing conflicts
-- ✅ Industry best practices
-- ✅ Easy updates
+Production URLs:
 
----
+- Frontend: https://quickcred.vercel.app
+- Backend API: https://quickcred-api.onrender.com
+- Health check: https://quickcred-api.onrender.com/api/health
 
-## 📋 Prerequisites
+## Deployment Architecture
 
-1. **GitHub Repository**: https://github.com/Hmtgit7/quickcred
-2. **Render Account**: https://render.com (free tier available)
-3. **Vercel Account**: https://vercel.com (free tier available)
+```text
+Browser
+  |
+  | https://quickcred.vercel.app
+  v
+Vercel: Next.js frontend
+  |
+  | NEXT_PUBLIC_API_URL=https://quickcred-api.onrender.com/api
+  v
+Render: NestJS API
+  |
+  | MONGODB_URI
+  v
+MongoDB Atlas
 
----
+Render API
+  |
+  | Cloudinary credentials
+  v
+Cloudinary document storage
+```
 
-## 🔧 Step 1: Deploy Backend to Render
+## Production Environment Variables
 
-### Backend Deployment
+### Vercel
 
-1. Go to **[render.com/dashboard](https://render.com/dashboard)**
-2. Click **"New +"** → **"Web Service"**
-3. Select **"Deploy an existing repository"** → Choose `Hmtgit7/quickcred`
-4. Configure:
-   ```
-   Name:                quickcred-api
-   Environment:         Docker
-   Region:              Singapore (or your preference)
-   Branch:              main
-   Root Directory:      (leave blank)
-   ```
-5. Click **"Create Web Service"** (deployment starts)
-6. Wait for build to complete (~2-3 minutes)
-7. Copy the deployed URL: `https://quickcred-api.onrender.com`
+Set these in the Vercel project settings for Production, Preview, and Development as needed.
 
-### Set Environment Variables
+```env
+NEXT_PUBLIC_API_URL=https://quickcred-api.onrender.com/api
+NEXT_PUBLIC_APP_NAME=QuickCred
+NEXT_PUBLIC_APP_URL=https://quickcred.vercel.app
+```
 
-1. Go to **Settings** tab
-2. Scroll to **Environment**
-3. Add:
-   ```
-   CORS_ORIGIN = https://your-frontend-domain.vercel.app
-   NODE_ENV = production
-   ```
-4. Click **"Save"**
+### Render
 
-### Verify Backend
+Set these in the Render web service environment.
 
-Test in terminal or browser:
+```env
+PORT=3000
+NODE_ENV=production
+API_PREFIX=api
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=replace-with-a-long-production-secret
+JWT_EXPIRY=15m
+JWT_REFRESH_SECRET=replace-with-another-long-production-secret
+JWT_REFRESH_EXPIRY=7d
+CLOUDINARY_CLOUD_NAME=your-cloud
+CLOUDINARY_API_KEY=your-key
+CLOUDINARY_API_SECRET=your-secret
+CORS_ORIGIN=https://quickcred.vercel.app
+```
+
+## Deploy Backend to Render
+
+1. Open Render dashboard.
+2. Create a new Web Service.
+3. Connect `https://github.com/Hmtgit7/quickcred`.
+4. Choose Docker environment.
+5. Keep root directory as the repository root.
+6. Use the root `Dockerfile`.
+7. Add the production environment variables above.
+8. Deploy.
+
+Render builds the backend API using:
+
+```text
+Dockerfile -> pnpm install -> pnpm --filter server build -> node server/dist/main.js
+```
+
+Verify:
+
 ```bash
-curl https://quickcred-api.onrender.com/api
-# Response: "Hello World!"
+curl https://quickcred-api.onrender.com/api/health
 ```
 
----
+Expected response shape:
 
-## 🎨 Step 2: Deploy Frontend to Vercel
-
-### Frontend Deployment
-
-1. Go to **[vercel.com/dashboard](https://vercel.com/dashboard)**
-2. Click **"Add New"** → **"Project"**
-3. Select **"Import Git Repository"**
-4. Find and select `Hmtgit7/quickcred`
-5. Configure:
-   ```
-   Framework:            Next.js
-   Root Directory:       client/
-   Build Command:        (auto-detected: next build)
-   Install Command:      (auto-detected: pnpm install)
-   Output Directory:     (auto-detected: .next)
-   ```
-6. Click **"Deploy"** (deployment starts)
-7. Wait for build to complete (~1-2 minutes)
-8. Copy the deployed URL: `https://quickcred.vercel.app`
-
-### Set Environment Variables
-
-1. Go to **Settings** → **Environment Variables**
-2. Add for all environments (Production, Preview, Development):
-   ```
-   NEXT_PUBLIC_API_URL = https://quickcred-api.onrender.com
-   ```
-3. Click **"Save"**
-4. Trigger redeploy: **Deployments** → Right-click latest → **Redeploy**
-
-### Verify Frontend
-
-Visit `https://quickcred.vercel.app` in browser - should load without errors.
-
----
-
-## 🔄 Update Environment Variables After Deployment
-
-### On Render (Backend)
-```
-CORS_ORIGIN = https://quickcred.vercel.app
+```json
+{
+  "status": "success",
+  "data": {
+    "status": "ok",
+    "service": "quickcred-api"
+  }
+}
 ```
 
-### On Vercel (Frontend)
+## Deploy Frontend to Vercel
+
+1. Open Vercel dashboard.
+2. Import `https://github.com/Hmtgit7/quickcred`.
+3. Set root directory to `client`.
+4. Framework preset: Next.js.
+5. Add the frontend environment variables.
+6. Deploy.
+
+Vercel should detect:
+
+```text
+Install command: pnpm install
+Build command: next build
+Output: .next
 ```
-NEXT_PUBLIC_API_URL = https://quickcred-api.onrender.com
-```
 
----
+Verify:
 
-## 🧪 Testing
-
-### Test Backend API
-```bash
-curl https://quickcred-api.onrender.com/api
-# Expected: "Hello World!"
-```
-
-### Test Frontend
-```bash
-# Open in browser
+```text
 https://quickcred.vercel.app
 ```
 
-### Test CORS (from browser console)
-```javascript
-fetch('https://quickcred-api.onrender.com/api')
-  .then(r => r.text())
-  .then(console.log)
-  // Should log: "Hello World!"
-```
+## Post-Deployment Checklist
 
----
+- Frontend loads at `https://quickcred.vercel.app`.
+- Backend health endpoint returns OK.
+- Vercel `NEXT_PUBLIC_API_URL` points to `https://quickcred-api.onrender.com/api`.
+- Render `CORS_ORIGIN` points to `https://quickcred.vercel.app`.
+- MongoDB Atlas allows Render network access.
+- Cloudinary credentials are present.
+- Login works with seeded demo accounts.
+- Borrower can complete profile and apply for a loan.
+- Operations roles can access only their allowed queues.
+- Admin analytics endpoints are only called by admin users.
 
-## 📊 Architecture Overview
+## Seeding Production Demo Users
 
-```
-┌─────────────────────────────────────┐
-│  Client (Vercel)                    │
-│  https://quickcred.vercel.app       │
-│  - Next.js 16 Frontend              │
-│  - React 19 Components              │
-│  - Turbopack Build System           │
-└────────────┬────────────────────────┘
-             │
-             │ NEXT_PUBLIC_API_URL
-             │ fetch('https://quickcred-api...')
-             ▼
-┌─────────────────────────────────────┐
-│  Server (Render)                    │
-│  https://quickcred-api.onrender.com │
-│  - NestJS 11 REST API               │
-│  - Express Under the Hood           │
-│  - Global Prefix: /api              │
-│  - CORS Enabled                     │
-└─────────────────────────────────────┘
-```
+If demo users are needed in a production-like database:
 
----
-
-## 🔐 Security Checklist
-
-- [ ] Backend `CORS_ORIGIN` points to Vercel domain
-- [ ] Frontend `NEXT_PUBLIC_API_URL` points to Render domain
-- [ ] No hardcoded API URLs in code
-- [ ] `NODE_ENV=production` on backend
-- [ ] Both deployments use HTTPS (enforced by Render/Vercel)
-
----
-
-## 🐛 Troubleshooting
-
-### "CORS Error" in Browser Console
-
-**Problem**: Frontend cannot fetch from backend
-**Solution**:
-1. Check backend `CORS_ORIGIN` env var matches frontend URL
-2. Verify backend returns `Access-Control-Allow-Origin` header
-3. Check firewall/VPN isn't blocking the request
-
-### API Returns 404
-
-**Problem**: Endpoint `/api` returns 404
-**Solution**:
-1. Verify backend URL is correct in frontend
-2. Test directly: `curl https://quickcred-api.onrender.com/api`
-3. Check backend logs on Render dashboard
-
-### Frontend Shows Blank Page
-
-**Problem**: Frontend loads but no content
-**Solution**:
-1. Check browser console for JavaScript errors
-2. Check `NEXT_PUBLIC_API_URL` is set correctly
-3. Check network tab to see failed requests
-4. Verify backend is running: `curl https://quickcred-api.onrender.com/api`
-
-### Render Deploy Fails
-
-**Problem**: Docker build fails on Render
-**Solution**:
-1. Check build logs on Render dashboard
-2. Verify Dockerfile is correct
-3. Ensure `pnpm-lock.yaml` is committed to git
-4. Try manual redeploy from dashboard
-
-### Vercel Deploy Fails
-
-**Problem**: Build fails on Vercel
-**Solution**:
-1. Check build logs on Vercel dashboard
-2. Verify `client/` directory exists and has `next.config.ts`
-3. Ensure all dependencies are in `package.json`
-4. Try deploying from CLI: `vercel deploy --prod`
-
----
-
-## 📈 Monitoring & Logs
-
-### Render Logs
 ```bash
-# In dashboard: Web Service → Logs tab
-# Shows: Build logs, Runtime logs, Errors
+pnpm --filter server seed
 ```
 
-### Vercel Logs
+Run this only against the intended database. The seed script is idempotent for the seeded email addresses and skips existing users.
+
+## CI and Quality Checks
+
+Run before deploying:
+
 ```bash
-# In dashboard: Deployments → Latest → Logs
-# Shows: Build logs, Function logs, Warnings
+pnpm install
+pnpm --filter client lint
+pnpm --filter client build
+pnpm --filter server build
+pnpm --filter server test
 ```
 
----
+Full workspace build:
 
-## 🔄 CI/CD Pipeline
+```bash
+pnpm build
+```
 
-### Auto-Deployment Triggers
+## Troubleshooting
 
-1. **Render**: Auto-deploys on every `git push` to `main`
-2. **Vercel**: Auto-deploys on every `git push` to `main`
+### Frontend shows API/CORS errors
 
-### Manual Redeploy
+Check:
 
-**Render**:
-1. Dashboard → Web Service → Deploy tab
-2. Click **"Manual Deploy"** → **"Deploy latest commit"**
+- `NEXT_PUBLIC_API_URL` includes `/api`.
+- Render `CORS_ORIGIN` exactly matches the Vercel domain.
+- Backend is awake and health endpoint responds.
 
-**Vercel**:
-1. Dashboard → Deployments
-2. Right-click latest → **"Redeploy"**
+### Backend fails during startup
 
----
+Render logs will usually point to missing environment variables. Required backend variables include MongoDB, JWT, refresh JWT, Cloudinary, and CORS values.
 
-## 📞 Support
+### Document upload fails
 
-- **Render Docs**: https://render.com/docs
-- **Vercel Docs**: https://vercel.com/docs
-- **NestJS Docs**: https://docs.nestjs.com
-- **Next.js Docs**: https://nextjs.org/docs
+Check:
 
----
+- Cloudinary credentials are correct.
+- File size is 5 MB or lower.
+- File type is PDF, JPG, JPEG, or PNG.
 
-**Last Updated**: May 15, 2026
+### Login works locally but not in production
+
+Check:
+
+- `JWT_SECRET` and `JWT_REFRESH_SECRET` are present and stable.
+- Frontend calls the correct production API URL.
+- Browser requests include the `Authorization` header after login.
+
+### Render service sleeps
+
+Free Render services may cold start. The first API request can be slow after inactivity.
+
+## Rollback
+
+Vercel:
+
+1. Open Deployments.
+2. Select a previous successful deployment.
+3. Promote it to production.
+
+Render:
+
+1. Open the web service.
+2. Go to Events or Deploys.
+3. Redeploy a previous successful commit if available.
+
+## Operations Notes
+
+- Swagger is intentionally development-only.
+- Production API documentation is maintained in `docs/API.md`.
+- API responses are wrapped by the backend response interceptor.
+- Health endpoint is public and safe for uptime checks.
