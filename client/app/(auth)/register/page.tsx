@@ -11,7 +11,7 @@ export default function RegisterPage() {
   return (
     <AuthCard
       title="Create your account"
-      description="Borrow with confidence. Set up your account in minutes."
+      description="Start as a borrower and complete your eligibility profile after signup."
     >
       <RegisterForm />
     </AuthCard>

@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <AuthCard
-      title="Welcome back"
-      description="Sign in to your account to continue."
+      title="Log in to your account"
+      description="Access your QuickCred workspace and keep loan movement on track."
     >
       <LoginForm />
     </AuthCard>

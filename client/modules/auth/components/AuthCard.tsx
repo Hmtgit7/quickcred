@@ -1,11 +1,4 @@
 import { type ReactNode } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { AuthHeader } from "./AuthHeader";
 
 interface AuthCardProps {
@@ -16,15 +9,15 @@ interface AuthCardProps {
 
 export function AuthCard({ title, description, children }: AuthCardProps) {
   return (
-    <div className="w-full max-w-md">
+    <div className="flex w-full max-w-md flex-1 flex-col justify-center py-10">
       <AuthHeader />
-      <Card className="border-border/60 shadow-lg">
-        <CardHeader className="space-y-1 pb-4">
-          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-          <CardDescription className="text-sm">{description}</CardDescription>
-        </CardHeader>
-        <CardContent>{children}</CardContent>
-      </Card>
+      <div className="mt-14">
+        <h1 className="text-4xl font-semibold leading-tight tracking-normal text-foreground">
+          {title}
+        </h1>
+        <p className="mt-3 text-base leading-7 text-muted-foreground">{description}</p>
+      </div>
+      <div className="mt-9">{children}</div>
     </div>
   );
 }
