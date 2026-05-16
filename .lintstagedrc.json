@@ -1,10 +1,8 @@
 {
   "client/**/*.{js,jsx,ts,tsx,json,css,md}": [
-    "pnpm --filter client -w lint --fix",
-    "pnpm --filter client -w format"
+    "pnpm --filter client -w lint --fix"
   ],
   "server/src/**/*.ts": [
-    "pnpm --filter server -w lint --fix",
-    "pnpm --filter server -w format"
+    "pnpm --filter server -w lint --fix"
   ]
 }
