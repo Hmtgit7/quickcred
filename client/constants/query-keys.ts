@@ -17,6 +17,9 @@ export const QUERY_KEYS = {
     DETAIL: (id: string) => ["loans", id] as const,
   },
   PAYMENTS: {
+    ALL: (page?: number, limit?: number) => ["payments", "all", page, limit] as const,
+    LOAN: (loanId: string) => ["payments", "loan", loanId] as const,
+    SUMMARY: (loanId: string) => ["payments", "summary", loanId] as const,
     BY_LOAN: (loanId: string) => ["payments", "loan", loanId] as const,
     OUTSTANDING: (loanId: string) => ["payments", "outstanding", loanId] as const,
   },

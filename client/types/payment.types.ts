@@ -9,6 +9,11 @@ export interface Payment {
   createdAt: string;
 }
 
+export interface RecordPaymentResponse {
+  payment: Payment;
+  autoClosedLoan: boolean;
+}
+
 export interface RecordPaymentPayload {
   loanId: string;
   utrNumber: string;
@@ -23,4 +28,9 @@ export interface OutstandingBalance {
   outstanding: number;
   isFullyPaid: boolean;
   paymentCount: number;
+}
+
+export interface LoanPaymentSummary extends OutstandingBalance {
+  isFullyRepaid: boolean;
+  payments: Payment[];
 }

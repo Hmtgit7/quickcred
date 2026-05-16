@@ -10,6 +10,7 @@ export interface Loan {
   interestRate: number;
   simpleInterest: number;
   totalRepayment: number;
+  outstandingAmount?: number;
   status: LoanStatus;
   salarySlipUrl?: string;
   rejectionReason?: string;
