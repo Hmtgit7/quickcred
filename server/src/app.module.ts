@@ -14,6 +14,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { LoansModule } from './modules/loans/loans.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { DocumentsModule } from './modules/documents/documents.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     BREModule,
     LoansModule,
     PaymentsModule,
+    DocumentsModule,
 
     // Rate limiting — 100 requests per 60s per IP globally
     ThrottlerModule.forRoot([
