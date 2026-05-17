@@ -2,7 +2,8 @@
 
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, BadgeCheck, Clock } from "lucide-react";
+import { Loader2, BadgeCheck, Clock, ShieldAlert } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
     Card,
     CardContent,
@@ -45,7 +46,7 @@ const EMPLOYMENT_OPTIONS = [
 ];
 
 export function ProfileCard() {
-    const { user, isLoading, updateProfile, isUpdating } = useProfile();
+    const { user, isLoading, updateProfile, isUpdating, serverBREErrors } = useProfile();
 
     const form = useForm<UpdateProfileFormData>({
         resolver: zodResolver(updateProfileSchema as never),
@@ -231,6 +232,21 @@ export function ProfileCard() {
                                     )}
                                 </p>
                             </div>
+                        )}
+
+                        {/* Server-side BRE errors (from API response) */}
+                        {serverBREErrors.length > 0 && (
+                            <Alert variant="destructive">
+                                <ShieldAlert className="h-4 w-4" />
+                                <AlertDescription>
+                                    <p className="font-medium mb-1">Eligibility check failed:</p>
+                                    <ul className="list-disc list-inside space-y-0.5 text-xs">
+                                        {serverBREErrors.map((e) => (
+                                            <li key={e}>{e}</li>
+                                        ))}
+                                    </ul>
+                                </AlertDescription>
+                            </Alert>
                         )}
 
                         <Button type="submit" className="w-full" disabled={isUpdating}>

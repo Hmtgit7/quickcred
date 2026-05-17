@@ -18,6 +18,6 @@ export enum LoanStatus {
 
 export enum EmploymentMode {
   Salaried = "salaried",
-  SelfEmployed = "selfemployed",
+  SelfEmployed = "self_employed",
   Unemployed = "unemployed",
 }
