@@ -14,7 +14,7 @@ export function useApplyLoan() {
   return useMutation({
     mutationFn: (payload: CreateLoanPayload) => loanService.createLoan(payload),
     onSuccess: (loan) => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.LOANS.MY() });
+      queryClient.invalidateQueries({ queryKey: ["loans", "my"] });
       toast.success("Loan application submitted!", {
         description: `Loan #${loan._id.slice(-6).toUpperCase()} is now pending review.`,
       });

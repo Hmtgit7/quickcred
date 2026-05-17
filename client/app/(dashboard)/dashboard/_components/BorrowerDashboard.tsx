@@ -1,20 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, FileText, PlusCircle, ShieldCheck } from "lucide-react";
+import { ArrowRight, PlusCircle, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Card,
     CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
 } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/PageHeader";
-import { EmptyState } from "@/components/common/EmptyState";
 import { ROUTES } from "@/constants/routes";
 import { formatCurrency } from "@/lib/utils";
 import type { User } from "@/types/user.types";
+import { MyLoansList } from "../../loans/_components/MyLoansList";
 
 interface BorrowerDashboardProps {
     user: User;
@@ -93,31 +90,23 @@ export function BorrowerDashboard({ user }: BorrowerDashboardProps) {
             )}
 
             {/* Loans section */}
-            <Card>
-                <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle className="text-sm font-semibold">My Loans</CardTitle>
-                            <CardDescription className="text-xs">Your active and past loan applications</CardDescription>
-                        </div>
-                        <Button asChild variant="ghost" size="sm" className="text-xs">
-                            <Link href={ROUTES.LOANS.ROOT}>
-                                View all
-                                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                            </Link>
-                        </Button>
+            <section className="space-y-3">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-sm font-semibold">My Loans</h2>
+                        <p className="text-xs text-muted-foreground">
+                            Your active and past loan applications
+                        </p>
                     </div>
-                </CardHeader>
-                <CardContent>
-                    <EmptyState
-                        icon={FileText}
-                        title="No loans yet"
-                        description="Apply for your first loan to get started."
-                        actionLabel={isProfileComplete ? "Apply now" : undefined}
-                        onAction={isProfileComplete ? () => { } : undefined}
-                    />
-                </CardContent>
-            </Card>
+                    <Button asChild variant="ghost" size="sm" className="text-xs">
+                        <Link href={ROUTES.LOANS.ROOT}>
+                            View all
+                            <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                        </Link>
+                    </Button>
+                </div>
+                <MyLoansList showApplyAction={isProfileComplete} />
+            </section>
         </div>
     );
 }

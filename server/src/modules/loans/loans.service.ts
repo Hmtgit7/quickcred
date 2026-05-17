@@ -139,8 +139,14 @@ export class LoansService {
 
     if (!loan) throw new NotFoundException('Loan not found');
 
+    const rawBorrowerId = loan.borrowerId as unknown;
+    const borrowerId =
+      typeof rawBorrowerId === 'object' && rawBorrowerId !== null && '_id' in rawBorrowerId
+        ? (rawBorrowerId as { _id: Types.ObjectId })._id.toString()
+        : String(rawBorrowerId);
+
     // Borrowers can only see their own loans
-    if (currentUser.role === Role.Borrower && loan.borrowerId.toString() !== currentUser.sub) {
+    if (currentUser.role === Role.Borrower && borrowerId !== currentUser.sub) {
       throw new ForbiddenException('You can only view your own loans');
     }
 

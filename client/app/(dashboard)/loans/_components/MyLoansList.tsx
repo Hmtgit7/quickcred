@@ -8,7 +8,11 @@ import { LoanCard } from "./LoanCard";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 
-export function MyLoansList() {
+interface MyLoansListProps {
+  showApplyAction?: boolean;
+}
+
+export function MyLoansList({ showApplyAction = true }: MyLoansListProps) {
   const { data, isLoading, isError } = useMyLoans();
   const router = useRouter();
 
@@ -38,8 +42,8 @@ export function MyLoansList() {
         icon={FileText}
         title="No loans yet"
         description="Apply for your first loan to get started."
-        actionLabel="Apply now"
-        onAction={() => router.push(ROUTES.LOANS.APPLY)}
+        actionLabel={showApplyAction ? "Apply now" : undefined}
+        onAction={showApplyAction ? () => router.push(ROUTES.LOANS.APPLY) : undefined}
       />
     );
   }
