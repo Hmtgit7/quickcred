@@ -10,8 +10,8 @@ import { AppController } from './app.controller';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { BREModule } from './modules/bre/bre.module';
-import { RolesGuard } from './common/guards/roles.guard';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
 import { LoansModule } from './modules/loans/loans.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { DocumentsModule } from './modules/documents/documents.module';
@@ -20,7 +20,6 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
-    // Infrastructure
     ConfigModule,
     DatabaseModule,
     CloudinaryModule,
@@ -32,28 +31,14 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     PaymentsModule,
     DocumentsModule,
     AnalyticsModule,
-
-    // Rate limiting — 100 requests per 60s per IP globally
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60_000,
-        limit: 100,
-      },
-    ]),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
   ],
   controllers: [AppController],
   providers: [
-    // Global rate limiter
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
-
-    // Global JWT guard — every route protected by default
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
-
-    // Global exception filter
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
-
-    // Global response transformer
     { provide: APP_INTERCEPTOR, useClass: ResponseTransformInterceptor },
   ],
 })

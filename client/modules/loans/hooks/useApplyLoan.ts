@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { loanService } from "../services/loanService";
-import { QUERY_KEYS } from "@/constants/query-keys";
 import { ROUTES } from "@/constants/routes";
 import { getAxiosErrorMessage } from "@/lib/axios/errorUtils";
 import type { CreateLoanPayload } from "@/types/loan.types";

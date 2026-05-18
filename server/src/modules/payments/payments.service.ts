@@ -27,12 +27,10 @@ export class PaymentsService {
     private readonly notificationsService: NotificationsService
   ) {}
 
-  // ── Record a payment ────────────────────────────────────────────────────
   async recordPayment(
     dto: RecordPaymentDto,
     currentUser: JwtPayload
   ): Promise<{ payment: PaymentDocument; autoClosedLoan: boolean }> {
-    // 1. Validate loan exists and is in DISBURSED status
     if (!Types.ObjectId.isValid(dto.loanId)) {
       throw new BadRequestException('Invalid loan ID format');
     }
@@ -47,7 +45,6 @@ export class PaymentsService {
       );
     }
 
-    // 2. Get current payment summary to validate amount
     const summary = await this.getPaymentSummary(loanObjectId);
 
     if (summary.outstanding <= 0) {
@@ -56,12 +53,11 @@ export class PaymentsService {
 
     if (dto.amount > summary.outstanding) {
       throw new BadRequestException(
-        `Payment amount ₹${dto.amount.toLocaleString()} exceeds outstanding balance ₹${summary.outstanding.toLocaleString()}. ` +
-          `Maximum allowed: ₹${summary.outstanding.toLocaleString()}`
+        `Payment amount ₹${dto.amount.toLocaleString()} exceeds outstanding balance ₹${summary.outstanding.toLocaleString()}.`
       );
     }
 
-    // 3. Check UTR uniqueness at application level (DB index is the real guard)
+    // Check UTR uniqueness at application level (DB unique index is the real guard)
     const existingUtr = await this.paymentModel.findOne({
       utrNumber: dto.utrNumber.toUpperCase(),
     });
@@ -71,7 +67,10 @@ export class PaymentsService {
       );
     }
 
-    // 4. Create payment record
+    const outstandingBefore = summary.outstanding;
+    const outstandingAfter = Math.max(0, outstandingBefore - dto.amount);
+
+    // Create the payment with balance snapshot
     const payment = await this.paymentModel.create({
       loanId: loanObjectId,
       borrowerId: loan.borrowerId,
@@ -79,13 +78,19 @@ export class PaymentsService {
       amount: dto.amount,
       paymentDate: new Date(dto.paymentDate),
       recordedBy: new Types.ObjectId(currentUser.sub),
+      outstandingBefore,
+      outstandingAfter,
+    });
+
+    // FIX: Update loan.totalPaid so it stays in sync for any direct reads
+    await this.loanModel.findByIdAndUpdate(loanObjectId, {
+      $inc: { totalPaid: dto.amount },
     });
 
     this.logger.log(
       `Payment ₹${dto.amount} recorded for loan ${dto.loanId} by ${currentUser.email} (UTR: ${dto.utrNumber})`
     );
 
-    // 5. Auto-close check — recalculate after this payment
     const newTotalPaid = summary.totalPaid + dto.amount;
     const autoClosedLoan = newTotalPaid >= loan.totalRepayment;
 
@@ -94,18 +99,16 @@ export class PaymentsService {
       this.logger.log(`Loan ${dto.loanId} auto-closed — full repayment received`);
     }
 
-    const newOutstanding = autoClosedLoan ? 0 : summary.outstanding - dto.amount;
     await this.notificationsService.notifyPaymentRecorded(
       loan.borrowerId.toString(),
       loanObjectId,
       dto.amount,
-      newOutstanding
+      outstandingAfter
     );
 
     return { payment, autoClosedLoan };
   }
 
-  // ── Get all payments for a loan ─────────────────────────────────────────
   async getLoanPayments(loanId: Types.ObjectId): Promise<PaymentDocument[]> {
     const loan = await this.loanModel.findById(loanId).lean();
     if (!loan) throw new NotFoundException('Loan not found');
@@ -117,12 +120,10 @@ export class PaymentsService {
       .lean();
   }
 
-  // ── Payment summary for a loan ──────────────────────────────────────────
   async getPaymentSummary(loanId: Types.ObjectId): Promise<PaymentSummary> {
     const loan = await this.loanModel.findById(loanId).lean();
     if (!loan) throw new NotFoundException('Loan not found');
 
-    // Aggregate total paid using MongoDB pipeline — single DB round-trip
     const [result] = await this.paymentModel.aggregate<{
       totalPaid: number;
       paymentCount: number;

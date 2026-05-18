@@ -5,6 +5,7 @@ import { LoansService } from './loans.service';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { Loan, LoanSchema } from './schemas/loan.schema';
 import { AuditLog, AuditLogSchema } from './schemas/audit-log.schema';
+import { Payment, PaymentSchema } from '../payments/schemas/payment.schema';
 
 @Module({
   imports: [
@@ -12,10 +13,11 @@ import { AuditLog, AuditLogSchema } from './schemas/audit-log.schema';
       { name: Loan.name, schema: LoanSchema },
       { name: AuditLog.name, schema: AuditLogSchema },
       { name: User.name, schema: UserSchema },
+      { name: Payment.name, schema: PaymentSchema },
     ]),
   ],
   controllers: [LoansController],
   providers: [LoansService],
-  exports: [LoansService], // exported — PaymentsService needs autoClose()
+  exports: [LoansService],
 })
 export class LoansModule {}

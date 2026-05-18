@@ -11,9 +11,9 @@ export enum LoanStatus {
   Pending = "pending",
   Applied = "applied",
   Sanctioned = "sanctioned",
+  Rejected = "rejected",
   Disbursed = "disbursed",
   Closed = "closed",
-  Rejected = "rejected",
 }
 
 export enum EmploymentMode {

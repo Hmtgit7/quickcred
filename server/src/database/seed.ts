@@ -9,38 +9,20 @@ import { Role } from '../common/enums/role.enum';
 
 const logger = new Logger('SeedScript');
 
+// ONE password for all accounts — evaluator-friendly
+const SEED_PASSWORD = 'QuickCred@123';
+
 const SEED_USERS = [
-  { email: 'admin@quickcred.com', password: 'Admin@123', role: Role.Admin, fullName: 'Admin User' },
+  { email: 'admin@quickcred.com', role: Role.Admin, fullName: 'Admin User' },
+  { email: 'sales@quickcred.com', role: Role.Sales, fullName: 'Sales Executive' },
+  { email: 'sanction@quickcred.com', role: Role.Sanction, fullName: 'Sanction Executive' },
   {
-    email: 'sales@quickcred.com',
-    password: 'Sales@123',
-    role: Role.Sales,
-    fullName: 'Sales Executive',
-  },
-  {
-    email: 'sanction@quickcred.com',
-    password: 'Sanction@123',
-    role: Role.Sanction,
-    fullName: 'Sanction Executive',
-  },
-  {
-    email: 'disburse@quickcred.com',
-    password: 'Disburse@123',
+    email: 'disbursement@quickcred.com',
     role: Role.Disbursement,
     fullName: 'Disbursement Executive',
   },
-  {
-    email: 'collection@quickcred.com',
-    password: 'Collect@123',
-    role: Role.Collection,
-    fullName: 'Collection Executive',
-  },
-  {
-    email: 'borrower@quickcred.com',
-    password: 'Borrow@123',
-    role: Role.Borrower,
-    fullName: 'Test Borrower',
-  },
+  { email: 'collection@quickcred.com', role: Role.Collection, fullName: 'Collection Executive' },
+  { email: 'borrower@quickcred.com', role: Role.Borrower, fullName: 'Test Borrower' },
 ] as const;
 
 async function seed() {
@@ -53,6 +35,8 @@ async function seed() {
   let created = 0;
   let skipped = 0;
 
+  const hashed = await bcrypt.hash(SEED_PASSWORD, 10);
+
   for (const seedUser of SEED_USERS) {
     const exists = await userModel.findOne({ email: seedUser.email });
 
@@ -62,7 +46,6 @@ async function seed() {
       continue;
     }
 
-    const hashed = await bcrypt.hash(seedUser.password, 10);
     await userModel.create({
       email: seedUser.email,
       password: hashed,
@@ -71,11 +54,20 @@ async function seed() {
       profileCompleted: seedUser.role !== Role.Borrower,
     });
 
-    logger.log(`✅  Created ${seedUser.role}: ${seedUser.email}`);
+    logger.log(`✅  Created [${seedUser.role}] ${seedUser.email}`);
     created++;
   }
 
   logger.log(`\n🌱 Seed complete — ${created} created, ${skipped} skipped`);
+  logger.log(`\n📋 All accounts use password: ${SEED_PASSWORD}`);
+  logger.log('\n┌─────────────────────────────────────┬──────────────────┐');
+  logger.log('│ Email                               │ Role             │');
+  logger.log('├─────────────────────────────────────┼──────────────────┤');
+  for (const u of SEED_USERS) {
+    logger.log(`│ ${u.email.padEnd(35)} │ ${u.role.padEnd(16)} │`);
+  }
+  logger.log('└─────────────────────────────────────┴──────────────────┘');
+
   await app.close();
 }
 

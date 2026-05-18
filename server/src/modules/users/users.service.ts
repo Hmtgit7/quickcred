@@ -14,14 +14,12 @@ export class UsersService {
     private breService: BREService
   ) {}
 
-  // ── Get own profile ──────────────────────────────────────────────────────
   async getMe(userId: string): Promise<UserDocument> {
     const user = await this.userModel.findById(userId).lean();
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
-  // ── Update profile + BRE check ───────────────────────────────────────────
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<UserDocument> {
     const breResult = this.breService.evaluate({
       dob: dto.dob,
@@ -56,7 +54,6 @@ export class UsersService {
     return updated;
   }
 
-  // ── Sales leads — users who registered but haven't applied yet ───────────
   async getLeads(
     page = PAGINATION.DEFAULT_PAGE as number,
     limit = PAGINATION.DEFAULT_LIMIT as number
@@ -83,7 +80,6 @@ export class UsersService {
     };
   }
 
-  // ── Admin — all users paginated ──────────────────────────────────────────
   async findAll(
     page = PAGINATION.DEFAULT_PAGE as number,
     limit = PAGINATION.DEFAULT_LIMIT as number

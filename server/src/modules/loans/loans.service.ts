@@ -21,6 +21,15 @@ import { LOAN } from '../../common/constants';
 import { Loan, LoanDocument } from './schemas/loan.schema';
 import { AuditLog, AuditLogDocument } from './schemas/audit-log.schema';
 import { NotificationsService } from '../notifications/notifications.service';
+import { Payment, PaymentDocument } from '../payments/schemas/payment.schema';
+
+interface PaymentAggResult {
+  _id: Types.ObjectId;
+  totalPaid: number;
+}
+
+type LeanLoan = Loan & { _id: Types.ObjectId; createdAt: Date; updatedAt: Date };
+type LoanWithOutstanding = LeanLoan & { outstandingAmount: number };
 
 @Injectable()
 export class LoansService {
@@ -30,12 +39,11 @@ export class LoansService {
     @InjectModel(Loan.name) private loanModel: Model<LoanDocument>,
     @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLogDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
     private readonly notificationsService: NotificationsService
   ) {}
 
-  // ── Apply for a loan ────────────────────────────────────────────────────
   async applyLoan(dto: ApplyLoanDto, currentUser: JwtPayload): Promise<LoanDocument> {
-    // Borrower must have completed profile before applying
     const user = await this.userModel.findById(currentUser.sub);
     if (!user) throw new NotFoundException('User not found');
     if (!user.profileCompleted) {
@@ -44,7 +52,6 @@ export class LoansService {
       );
     }
 
-    // Only one active loan per borrower (no duplicate open applications)
     const activeLoan = await this.loanModel.findOne({
       borrowerId: new Types.ObjectId(currentUser.sub),
       status: { $in: [LoanStatus.Applied, LoanStatus.Sanctioned, LoanStatus.Disbursed] },
@@ -77,17 +84,34 @@ export class LoansService {
     return loan;
   }
 
-  // ── Borrower: get own loans ─────────────────────────────────────────────
-  async getMyLoans(currentUser: JwtPayload): Promise<LoanDocument[]> {
-    return this.loanModel
+  async getMyLoans(currentUser: JwtPayload): Promise<LoanWithOutstanding[]> {
+    // Pass Loan class as generic so TypeScript knows the field shapes after lean()
+    const loans = await this.loanModel
       .find({ borrowerId: new Types.ObjectId(currentUser.sub) })
       .sort({ createdAt: -1 })
       .populate('sanctionedBy', 'fullName email')
       .populate('disbursedBy', 'fullName email')
-      .lean();
+      .lean<LeanLoan[]>();
+
+    if (!loans.length) return [];
+
+    const loanIds = loans.map((l) => l._id);
+
+    const paymentsAgg = await this.paymentModel.aggregate<PaymentAggResult>([
+      { $match: { loanId: { $in: loanIds } } },
+      { $group: { _id: '$loanId', totalPaid: { $sum: '$amount' } } },
+    ]);
+
+    const paidMap = new Map<string, number>(
+      paymentsAgg.map((p) => [p._id.toString(), p.totalPaid])
+    );
+
+    return loans.map((loan) => ({
+      ...loan,
+      outstandingAmount: Math.max(0, loan.totalRepayment - (paidMap.get(loan._id.toString()) ?? 0)),
+    }));
   }
 
-  // ── Ops dashboard: get all loans (paginated, filtered) ──────────────────
   async getAll(query: LoanQueryDto): Promise<PaginatedResponse<LoanDocument>> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
@@ -96,7 +120,6 @@ export class LoansService {
     const filter: Record<string, unknown> = {};
     if (query.status) filter['status'] = query.status;
 
-    // If search is provided, join with users collection
     if (query.search) {
       const searchRegex = new RegExp(query.search, 'i');
       const matchingUsers = await this.userModel
@@ -128,7 +151,6 @@ export class LoansService {
     };
   }
 
-  // ── Get single loan ─────────────────────────────────────────────────────
   async getById(loanId: Types.ObjectId, currentUser: JwtPayload): Promise<LoanDocument> {
     const loan = await this.loanModel
       .findById(loanId)
@@ -145,7 +167,6 @@ export class LoansService {
         ? (rawBorrowerId as { _id: Types.ObjectId })._id.toString()
         : String(rawBorrowerId);
 
-    // Borrowers can only see their own loans
     if (currentUser.role === Role.Borrower && borrowerId !== currentUser.sub) {
       throw new ForbiddenException('You can only view your own loans');
     }
@@ -153,7 +174,6 @@ export class LoansService {
     return loan;
   }
 
-  // ── Sanction: approve or reject ─────────────────────────────────────────
   async sanctionLoan(
     loanId: Types.ObjectId,
     dto: SanctionLoanDto,
@@ -209,7 +229,6 @@ export class LoansService {
     return updated;
   }
 
-  // ── Disbursement: mark as disbursed ─────────────────────────────────────
   async disburseLoan(
     loanId: Types.ObjectId,
     dto: DisburseLoanDto,
@@ -257,7 +276,6 @@ export class LoansService {
     return updated;
   }
 
-  // ── Get audit trail for a loan ───────────────────────────────────────────
   async getAuditTrail(loanId: Types.ObjectId): Promise<AuditLogDocument[]> {
     return this.auditLogModel
       .find({ entityType: 'loan', entityId: loanId })
@@ -266,7 +284,6 @@ export class LoansService {
       .lean();
   }
 
-  // ── Internal: auto-close (called by PaymentsService) ────────────────────
   async autoClose(loanId: Types.ObjectId, actorId: string): Promise<void> {
     await this.loanModel.findByIdAndUpdate(loanId, {
       status: LoanStatus.Closed,
@@ -287,9 +304,7 @@ export class LoansService {
     this.logger.log(`Loan ${loanId.toString()} auto-closed after full repayment`);
   }
 
-  // ── Utility: SI calculation ──────────────────────────────────────────────
   calculateLoan(principal: number, tenureDays: number, rate: number): LoanCalculation {
-    // SI = (P × R × T) / (365 × 100)
     const simpleInterest = Math.round((principal * rate * tenureDays) / (365 * 100));
     return {
       principalAmount: principal,
@@ -300,7 +315,6 @@ export class LoansService {
     };
   }
 
-  // ── Private: write audit log ─────────────────────────────────────────────
   private async writeAuditLog(entry: {
     entityType: string;
     entityId: Types.ObjectId;
@@ -319,7 +333,6 @@ export class LoansService {
         metadata: entry.metadata ?? null,
       });
     } catch (err) {
-      // Audit failure must NEVER crash a business operation
       this.logger.warn('Audit log write failed', err);
     }
   }

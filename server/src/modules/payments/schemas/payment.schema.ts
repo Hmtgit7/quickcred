@@ -3,7 +3,7 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type PaymentDocument = HydratedDocument<Payment>;
 
-@Schema({ timestamps: { createdAt: true, updatedAt: false } }) // payments are immutable
+@Schema({ timestamps: { createdAt: true, updatedAt: false }, versionKey: false })
 export class Payment {
   @Prop({ type: Types.ObjectId, ref: 'Loan', required: true, index: true })
   loanId!: Types.ObjectId;
@@ -12,7 +12,7 @@ export class Payment {
   borrowerId!: Types.ObjectId;
 
   @Prop({ required: true, trim: true, uppercase: true, unique: true })
-  utrNumber!: string; // DB-level unique index — deduplication at source
+  utrNumber!: string;
 
   @Prop({ required: true, min: 1 })
   amount!: number;
@@ -21,12 +21,18 @@ export class Payment {
   paymentDate!: Date;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  recordedBy!: Types.ObjectId; // collection exec or admin
+  recordedBy!: Types.ObjectId;
+
+  // ── Balance snapshot at time of payment — immutable audit trail ────────
+  @Prop({ required: true, default: 0 })
+  outstandingBefore!: number;
+
+  @Prop({ required: true, default: 0 })
+  outstandingAfter!: number;
 
   createdAt!: Date;
 }
 
 export const PaymentSchema = SchemaFactory.createForClass(Payment);
 
-// Compound index for fast per-loan payment queries
 PaymentSchema.index({ loanId: 1, createdAt: 1 });
