@@ -49,7 +49,6 @@ export class DocumentsService {
       }
     }
 
-    // FIX: was calling uploadBuffer() — method is uploadFile() with different signature
     const uploaded = await this.cloudinaryService.uploadBuffer(
       file.buffer,
       'documents',
