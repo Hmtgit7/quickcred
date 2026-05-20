@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card, CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { SliderWithInput } from "@/components/forms/SliderWithInput";
 import { useApplyLoan } from "@/modules/loans/hooks/useApplyLoan";
@@ -14,9 +12,10 @@ import { calculateLoan, formatCurrency } from "@/lib/utils";
 
 interface StepLoanConfigProps {
   onBack: () => void;
+  salarySlipDocId?: string;
 }
 
-export function StepLoanConfig({ onBack }: StepLoanConfigProps) {
+export function StepLoanConfig({ onBack, salarySlipDocId }: StepLoanConfigProps) {
   const [principal, setPrincipal] = useState<number>(LOAN_CONSTANTS.MIN_AMOUNT);
   const [tenure, setTenure] = useState<number>(LOAN_CONSTANTS.MIN_TENURE_DAYS);
   const { mutate: applyLoan, isPending } = useApplyLoan();
@@ -24,7 +23,11 @@ export function StepLoanConfig({ onBack }: StepLoanConfigProps) {
   const calc = calculateLoan(principal, tenure);
 
   const handleApply = () => {
-    applyLoan({ principalAmount: principal, tenureDays: tenure });
+    applyLoan({
+      principalAmount: principal,
+      tenureDays: tenure,
+      salarySlipDocId,
+    });
   };
 
   return (
@@ -36,7 +39,6 @@ export function StepLoanConfig({ onBack }: StepLoanConfigProps) {
         </p>
       </div>
 
-      {/* Sliders */}
       <div className="space-y-6">
         <SliderWithInput
           label="Loan Amount"
@@ -60,7 +62,6 @@ export function StepLoanConfig({ onBack }: StepLoanConfigProps) {
         />
       </div>
 
-      {/* Live calculation panel */}
       <Card className="bg-muted/40 border-border/60">
         <CardContent className="pt-5 pb-4 space-y-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -114,7 +115,6 @@ export function StepLoanConfig({ onBack }: StepLoanConfigProps) {
   );
 }
 
-/* ── Calculation row ────────────────────────────── */
 interface CalcRowProps {
   label: string;
   value: string;

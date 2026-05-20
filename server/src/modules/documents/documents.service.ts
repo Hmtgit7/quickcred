@@ -78,6 +78,41 @@ export class DocumentsService {
     return document;
   }
 
+  async attachLoan(
+    documentId: Types.ObjectId,
+    loanId: string,
+    currentUser: JwtPayload
+  ): Promise<DocumentRecord> {
+    if (!Types.ObjectId.isValid(loanId)) {
+      throw new BadRequestException('Invalid loan ID format');
+    }
+
+    const document = await this.documentModel.findById(documentId);
+    if (!document) throw new NotFoundException('Document not found');
+
+    if (currentUser.role !== Role.Admin && document.uploadedBy.toString() !== currentUser.sub) {
+      throw new ForbiddenException('You can only update your own documents');
+    }
+
+    const loanObjectId = new Types.ObjectId(loanId);
+    const loan = await this.loanModel.findById(loanObjectId).lean();
+    if (!loan) throw new NotFoundException('Loan not found');
+
+    document.loanId = loanObjectId;
+    await document.save();
+
+    if (document.documentType === DocumentType.SalarySlip) {
+      await this.loanModel.findByIdAndUpdate(loanObjectId, {
+        salarySlipDocId: document._id,
+      });
+    }
+
+    this.logger.log(
+      `Document ${documentId.toString()} attached to loan ${loanId} by ${currentUser.email}`
+    );
+    return document;
+  }
+
   async getLoanDocuments(
     loanId: Types.ObjectId,
     currentUser: JwtPayload

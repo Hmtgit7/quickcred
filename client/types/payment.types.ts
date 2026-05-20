@@ -6,6 +6,8 @@ export interface Payment {
   amount: number;
   paymentDate: string;
   recordedBy: string;
+  outstandingBefore: number;
+  outstandingAfter: number;
   createdAt: string;
 }
 

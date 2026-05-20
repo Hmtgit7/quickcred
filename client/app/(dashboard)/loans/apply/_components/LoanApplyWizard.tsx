@@ -35,23 +35,24 @@ export function LoanApplyWizard() {
       <CardContent className="pt-6">
         <StepIndicator steps={STEPS} currentStep={currentStep} />
 
-        {currentStep === 1 && (
-          <StepPersonalDetails onNext={goNext} />
-        )}
+        {currentStep === 1 && <StepPersonalDetails onNext={goNext} />}
 
         {currentStep === 2 && (
           <StepUploadSlip
-            onNext={(doc) => { setUploadedDoc(doc); goNext(); }}
+            onNext={(doc) => {
+              setUploadedDoc(doc);
+              goNext();
+            }}
             onBack={goBack}
           />
         )}
 
         {currentStep === 3 && (
-          <StepLoanConfig onBack={goBack} />
+          <StepLoanConfig
+            onBack={goBack}
+            salarySlipDocId={uploadedDoc?._id}
+          />
         )}
-
-        {/* Suppress unused warning */}
-        {uploadedDoc && <span className="hidden">{uploadedDoc._id}</span>}
       </CardContent>
     </Card>
   );

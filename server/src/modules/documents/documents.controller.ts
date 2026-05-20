@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Delete,
+  Patch,
   Body,
   Param,
   UploadedFile,
@@ -34,6 +35,14 @@ import { JwtPayload } from '../../common/interfaces/jwt-payload.interface';
 import { ParseObjectIdPipe } from '../../common/pipes/parse-object-id.pipe';
 import { Types } from 'mongoose';
 import { FILE_UPLOAD } from '../../common/constants';
+import { IsMongoId } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+class AttachLoanDto {
+  @ApiProperty({ example: '64f1a2b3c4d5e6f7a8b9c0d1' })
+  @IsMongoId()
+  loanId!: string;
+}
 
 @ApiTags('documents')
 @ApiBearerAuth('access-token')
@@ -41,12 +50,11 @@ import { FILE_UPLOAD } from '../../common/constants';
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
-  // ── Upload a document ───────────────────────────────────────────────────
   @Post('upload')
   @Roles(Role.Borrower, Role.Admin)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: memoryStorage(), // keep in buffer — we stream to Cloudinary
+      storage: memoryStorage(),
       limits: { fileSize: FILE_UPLOAD.MAX_SIZE_BYTES },
     })
   )
@@ -83,7 +91,19 @@ export class DocumentsController {
     return this.documentsService.uploadDocument(file, dto, user);
   }
 
-  // ── Get documents for a loan ────────────────────────────────────────────
+  @Patch(':id/attach-loan')
+  @Roles(Role.Borrower, Role.Admin)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Attach a loan ID to an existing document' })
+  @ApiParam({ name: 'id', description: 'Document ObjectId' })
+  attachLoan(
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+    @Body() dto: AttachLoanDto,
+    @CurrentUser() user: JwtPayload
+  ) {
+    return this.documentsService.attachLoan(id, dto.loanId, user);
+  }
+
   @Get('loan/:loanId')
   @Roles(Role.Borrower, Role.Admin, Role.Sanction, Role.Disbursement, Role.Collection)
   @ApiOperation({ summary: 'Get all documents attached to a loan' })
@@ -96,7 +116,6 @@ export class DocumentsController {
     return this.documentsService.getLoanDocuments(loanId, user);
   }
 
-  // ── Get own documents (borrower) ────────────────────────────────────────
   @Get('my')
   @Roles(Role.Borrower)
   @ApiOperation({ summary: 'Get all documents uploaded by current borrower' })
@@ -105,7 +124,6 @@ export class DocumentsController {
     return this.documentsService.getMyDocuments(user);
   }
 
-  // ── Delete a document ────────────────────────────────────────────────────
   @Delete(':id')
   @Roles(Role.Borrower, Role.Admin)
   @HttpCode(HttpStatus.NO_CONTENT)
